@@ -11,24 +11,19 @@ import org.gradle.api.Project
 class TestngPlugin implements Plugin<Project> {
 
   def void apply(Project project) {
-
     project.extensions.add("testng", new TestngPluginConfiguration())
 
     project.task("test", overwrite: true, dependsOn: ["classes", "testClasses"]) << {
+      ant.taskdef(name: 'testng', classname: 'org.testng.TestNGAntTask', classpath: project.sourceSets.test.runtimeClasspath.asPath)
 
       println "Executing testng tests..."
-
-      ant.taskdef(name: 'testng', classname: 'org.testng.TestNGAntTask', classpath: project.sourceSets.test.runtimeClasspath.asPath)
 
       String skip = project.gradle.startParameter.mergedSystemProperties['skipTests']
       if (skip == 'true') {
         println "Skipping testing!"
       } else {
-
         def dbGroups = ["integration", "acceptance"]
-
-        String group = project.gradle.startParameter.mergedSystemProperties['group']
-
+        def group = project.gradle.startParameter.mergedSystemProperties['group']
         def dbTypes = []
         try {
           dbTypes = project.database.types
@@ -50,7 +45,7 @@ class TestngPlugin implements Plugin<Project> {
             }
           }
         } else {
-          if (group.equals("unit") || group.equals("performance") || group.equals("performance")) {
+          if (group == "unit" || group == "performance" || group == "performance") {
             runTests(project, null, group)
           } else {
             if (dbTypes.size() > 0) {
@@ -69,7 +64,6 @@ class TestngPlugin implements Plugin<Project> {
   }
 
   private void runTests(Project project, def dbType, def group) {
-
     if (dbType != null) {
       println "Executing [${group}] tests against database [$dbType]"
     } else {
@@ -95,15 +89,14 @@ class TestngPlugin implements Plugin<Project> {
       excludedGroups = "functional"
     }
 
-    def outputDir = "$project.buildDir/reports/tests"
+    def outputDir = "${project.buildDir}/reports/tests"
     if (dbType == null) {
       outputDir += "/${group}"
     } else {
       outputDir += "/${group}/${dbType}/"
     }
 
-    project.ant.testng(verbose: 2, outputDir: outputDir, haltOnFailure: true,
-      threadCount: 1, groups: group, excludedGroups: excludedGroups) {
+    project.ant.testng(enableAssert: true, outputDir: outputDir, haltOnFailure: true, threadCount: 1, groups: group, excludedGroups: excludedGroups) {
       jvmarg(value: "-Xmx${project.testng.maxMemory}")
       jvmarg(value: "-Djava.util.logging.config.file=src/build/resources/test/logging.properties")
 
@@ -115,12 +108,12 @@ class TestngPlugin implements Plugin<Project> {
       jvmarg(line: "${project.testng.jvmArgs}")
       classpath {
         pathElement(path: project.sourceSets.test.runtimeClasspath.asPath)
-        path(location: "$project.buildDir/classes/main")
-        path(location: "$project.buildDir/resources/main")
-        path(location: "$project.buildDir/classes/test")
-        path(location: "$project.buildDir/resources/test")
+        path(location: "${project.buildDir}/classes/main")
+        path(location: "${project.buildDir}/resources/main")
+        path(location: "${project.buildDir}/classes/test")
+        path(location: "${project.buildDir}/resources/test")
       }
-      classfileset(dir: "$project.buildDir/classes/test", includes: includes)
+      classfileset(dir: "${project.buildDir}/classes/test", includes: includes)
     }
   }
 
