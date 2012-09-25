@@ -13,7 +13,7 @@ class TestngPlugin implements Plugin<Project> {
   def void apply(Project project) {
     project.extensions.add("testng", new TestngPluginConfiguration())
 
-    project.task("test", overwrite: true, dependsOn: ["classes", "testClasses"]) << {
+    project.task("test", overwrite: true, dependsOn: ["a-testClasses", "jar"]) << {
       ant.taskdef(name: 'testng', classname: 'org.testng.TestNGAntTask', classpath: project.sourceSets.test.runtimeClasspath.asPath)
 
       println "Executing testng tests..."
@@ -61,6 +61,10 @@ class TestngPlugin implements Plugin<Project> {
         }
       }
     }
+
+    project.task("a-testClasses", dependsOn: ["testClasses"]) << {
+
+    }
   }
 
   private void runTests(Project project, def dbType, def group) {
@@ -107,9 +111,10 @@ class TestngPlugin implements Plugin<Project> {
       jvmarg(line: "-DlogFilePath=${project.testng.logFile}")
       jvmarg(line: "${project.testng.jvmArgs}")
       classpath {
+        fileset(dir: "${project.buildDir}/libs") {
+          include(name: "**/*.jar")
+        }
         pathElement(path: project.sourceSets.test.runtimeClasspath.asPath)
-        path(location: "${project.buildDir}/classes/main")
-        path(location: "${project.buildDir}/resources/main")
         path(location: "${project.buildDir}/classes/test")
         path(location: "${project.buildDir}/resources/test")
       }
