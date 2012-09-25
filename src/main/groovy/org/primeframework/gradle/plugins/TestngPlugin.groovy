@@ -13,7 +13,7 @@ class TestngPlugin implements Plugin<Project> {
   def void apply(Project project) {
     project.extensions.add("testng", new TestngPluginConfiguration())
 
-    project.task("test", overwrite: true, dependsOn: ["a-testClasses", "jar"]) << {
+    project.task("test", overwrite: true, dependsOn: ["jar", "testClasses"]) << {
       ant.taskdef(name: 'testng', classname: 'org.testng.TestNGAntTask', classpath: project.sourceSets.test.runtimeClasspath.asPath)
 
       println "Executing testng tests..."
@@ -60,10 +60,6 @@ class TestngPlugin implements Plugin<Project> {
           }
         }
       }
-    }
-
-    project.task("a-testClasses", dependsOn: ["testClasses"]) << {
-
     }
   }
 
