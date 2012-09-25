@@ -45,7 +45,7 @@ class TestngPlugin implements Plugin<Project> {
             }
           }
         } else {
-          if (group == "unit" || group == "performance" || group == "performance") {
+          if (group == "unit" || group == "performance") {
             runTests(project, null, group)
           } else {
             if (dbTypes.size() > 0) {
@@ -86,13 +86,6 @@ class TestngPlugin implements Plugin<Project> {
       databaseType = "-Ddatabase.type=$dbType";
     }
 
-    def excludedGroups = "functional, performance"
-    if (group.equals("functional")) {
-      excludedGroups = "performance"
-    } else if (group.equals("performance")) {
-      excludedGroups = "functional"
-    }
-
     def outputDir = "${project.buildDir}/reports/tests"
     if (dbType == null) {
       outputDir += "/${group}"
@@ -100,9 +93,9 @@ class TestngPlugin implements Plugin<Project> {
       outputDir += "/${group}/${dbType}/"
     }
 
-    project.ant.testng(enableAssert: true, outputDir: outputDir, haltOnFailure: true, threadCount: 1, groups: group, excludedGroups: excludedGroups) {
+    project.ant.testng(enableAssert: true, outputDir: outputDir, haltOnFailure: true, threadCount: 1, groups: group) {
       jvmarg(value: "-Xmx${project.testng.maxMemory}")
-      jvmarg(value: "-Djava.util.logging.config.file=src/build/resources/test/logging.properties")
+      jvmarg(value: "-Djava.util.logging.config.file=src/test/resources/logging.properties")
 
       if (databaseType != null) {
         jvmarg(value: databaseType)
