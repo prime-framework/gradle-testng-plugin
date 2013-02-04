@@ -92,6 +92,7 @@ class TestngPlugin implements Plugin<Project> {
     project.ant.testng(enableAssert: true, outputDir: outputDir, haltOnFailure: true, threadCount: 1, groups: group) {
       jvmarg(value: "-Xmx${project.testng.maxMemory}")
       jvmarg(value: "-Djava.util.logging.config.file=src/test/resources/logging.properties")
+      jvmarg(value: "-Dfile.encoding=UTF8")
 
       if (databaseType != null) {
         jvmarg(value: databaseType)
