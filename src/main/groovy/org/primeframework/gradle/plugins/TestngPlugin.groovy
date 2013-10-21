@@ -13,6 +13,10 @@ class TestngPlugin implements Plugin<Project> {
   def void apply(Project project) {
     project.extensions.add("testng", new TestngPluginConfiguration())
 
+    // Hack around gradle's 1.3+ inability to overwrite the test task
+    def javaCheck = project.getTasksByName("check", false).iterator().next()
+    javaCheck.getDependsOn().remove("test")
+
     project.task("test", overwrite: true, dependsOn: ["jar", "testClasses"]) << {
       ant.taskdef(name: 'testng', classname: 'org.testng.TestNGAntTask', classpath: project.sourceSets.test.runtimeClasspath.asPath)
 
@@ -61,6 +65,7 @@ class TestngPlugin implements Plugin<Project> {
         }
       }
     }
+    javaCheck.getDependsOn().add("test")
   }
 
   private void runTests(Project project, def dbType, def group) {
