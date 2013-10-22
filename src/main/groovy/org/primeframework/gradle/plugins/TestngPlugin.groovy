@@ -2,6 +2,7 @@ package org.primeframework.gradle.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 
 /**
  * The database plugin is used for creating database
@@ -14,10 +15,15 @@ class TestngPlugin implements Plugin<Project> {
     project.extensions.add("testng", new TestngPluginConfiguration())
 
     // Hack around gradle's 1.3+ inability to overwrite the test task
-    def javaCheck = project.getTasksByName("check", false).iterator().next()
-    javaCheck.getDependsOn().remove("test")
-
-    project.task("test", overwrite: true, dependsOn: ["jar", "testClasses"]) << {
+    def checkTask = project.getTasksByName("check", false).iterator().next()
+    def existingTestTask
+    checkTask.getDependsOn().each {
+      if (it instanceof Task && (it as Task).name.equals("test")) {
+        existingTestTask = it
+      }
+    }
+    checkTask.getDependsOn().remove(existingTestTask)
+    def testTask = project.task("test", overwrite: true, dependsOn: ["jar", "testClasses"]) << {
       ant.taskdef(name: 'testng', classname: 'org.testng.TestNGAntTask', classpath: project.sourceSets.test.runtimeClasspath.asPath)
 
       println "Executing testng tests..."
@@ -65,7 +71,7 @@ class TestngPlugin implements Plugin<Project> {
         }
       }
     }
-    javaCheck.getDependsOn().add("test")
+    checkTask.getDependsOn().add(testTask)
   }
 
   private void runTests(Project project, def dbType, def group) {
